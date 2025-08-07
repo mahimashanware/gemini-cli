@@ -7,6 +7,11 @@
 import { Part } from '@google/genai';
 import { Config } from '../config/config.js';
 import { getFolderStructure } from './getFolderStructure.js';
+import * as fs from 'fs';
+
+export const logToFile = (message: string) => {
+  fs.appendFileSync('/usr/local/google/home/mshanware/dev/gemini-cli-logs-16.txt', message + '\n\n');
+};
 
 /**
  * Generates a string describing the current workspace directories and their structures.
@@ -32,15 +37,22 @@ export async function getDirectoryContextString(
   let workingDirPreamble: string;
   if (workspaceDirectories.length === 1) {
     workingDirPreamble = `I'm currently working in the directory: ${workspaceDirectories[0]}`;
+    // // logToFile(`mahima - workingDirPreamble ${workspaceDirectories[0]}`)
+    // logToFile(`\n\n---------------------------------\n\n`)
   } else {
     const dirList = workspaceDirectories.map((dir) => `  - ${dir}`).join('\n');
     workingDirPreamble = `I'm currently working in the following directories:\n${dirList}`;
+    // // logToFile(`mahima 2 I'm currently working in the following directories:\n${dirList}`)
+    // logToFile(`\n\n---------------------------------\n\n`)
   }
 
+  // // logToFile(`mahima3 - ${workingDirPreamble}`)
+  // logToFile(`\n\n---------------------------------\n\n`)
+  // // logToFile(`mahima4 - ${folderStructure}`)
+  // logToFile(`\n\n---------------------------------\n\n`)
   return `${workingDirPreamble}
-Here is the folder structure of the current working directories:
-
-${folderStructure}`;
+  Here is the folder structure of the current working directories:
+  ${folderStructure}`;
 }
 
 /**
@@ -72,6 +84,7 @@ ${directoryContext}
 
   // Add full file context if the flag is set
   if (config.getFullContext()) {
+    // // logToFile(`mahima5before entered here\n`)
     try {
       const readManyFilesTool = toolRegistry.getTool('read_many_files');
       if (readManyFilesTool) {
@@ -82,6 +95,8 @@ ${directoryContext}
 
         // Read all files in the target directory
         const result = await invocation.execute(AbortSignal.timeout(30000));
+        // // logToFile(`mahima5 - read all files in target dir ${result}`)
+        // logToFile(`\n\n---------------------------------\n\n`)
         if (result.llmContent) {
           initialParts.push({
             text: `\n--- Full File Context ---\n${result.llmContent}`,
@@ -92,6 +107,7 @@ ${directoryContext}
           );
         }
       } else {
+        // // logToFile(`mahima5 - no tool`)
         console.warn(
           'Full context requested, but read_many_files tool not found.',
         );
@@ -103,7 +119,12 @@ ${directoryContext}
         text: '\n--- Error reading full file context ---',
       });
     }
+  } else {
+    // // logToFile(`mahima5before didnt enter here\n`)
   }
+  // // logToFile(`mahima6 initial parts ${initialParts}`)
+  // logToFile(`\n\n---------------------------------\n\n`)
+
 
   return initialParts;
 }

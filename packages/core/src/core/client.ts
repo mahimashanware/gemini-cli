@@ -15,6 +15,7 @@ import {
 import {
   getDirectoryContextString,
   getEnvironmentContext,
+  logToFile
 } from '../utils/environmentContext.js';
 import {
   Turn,
@@ -50,11 +51,16 @@ import {
 } from '../telemetry/types.js';
 import { ClearcutLogger } from '../telemetry/clearcut-logger/clearcut-logger.js';
 import { IdeContext, File } from '../ide/ideContext.js';
+// import * as fs from 'fs';
 
 function isThinkingSupported(model: string) {
   if (model.startsWith('gemini-2.5')) return true;
   return false;
 }
+
+// const logToFile = (message: string) => {
+//   fs.appendFileSync('/usr/local/google/home/mshanware/dev/gemini-cli-logs-6.txt', message + '\n\n');
+// };
 
 /**
  * Returns the index of the content after the fraction of the total characters in the history.
@@ -214,10 +220,19 @@ export class GeminiClient {
       parts: [{ text: await getDirectoryContextString(this.config) }],
     });
   }
+  
 
   async startChat(extraHistory?: Content[]): Promise<GeminiChat> {
     this.forceFullIdeContext = true;
     const envParts = await getEnvironmentContext(this.config);
+    logToFile(`mahima7? - envParts`)
+    for (const part of envParts) {
+      // Check if the part has a text property to log
+      if (part.text) {
+        // logToFile(part.text);
+      }
+    }
+    // logToFile(`\n\n---------------------------------\n\n`)
     const toolRegistry = await this.config.getToolRegistry();
     const toolDeclarations = toolRegistry.getFunctionDeclarations();
     const tools: Tool[] = [{ functionDeclarations: toolDeclarations }];

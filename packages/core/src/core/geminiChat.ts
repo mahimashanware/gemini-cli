@@ -23,6 +23,10 @@ import { Config } from '../config/config.js';
 import { DEFAULT_GEMINI_FLASH_MODEL } from '../config/models.js';
 import { hasCycleInSchema } from '../tools/tools.js';
 import { StructuredError } from './turn.js';
+// import * as fs from 'fs';
+import {
+  logToFile
+} from '../utils/environmentContext.js';
 
 /**
  * Returns true if the response is valid, false otherwise.
@@ -118,7 +122,7 @@ export class GeminiChat {
   // A promise to represent the current state of the message being sent to the
   // model.
   private sendPromise: Promise<void> = Promise.resolve();
-
+  
   constructor(
     private readonly config: Config,
     private readonly contentGenerator: ContentGenerator,
@@ -493,6 +497,36 @@ export class GeminiChat {
     modelOutput: Content[],
     automaticFunctionCallingHistory?: Content[],
   ) {
+    if (userInput.parts) {
+      for (const part of userInput.parts) {
+        if ('functionResponse' in part && part.functionResponse) {
+          logToFile(`====== TOOL CALL OUTPUT ======\n` +
+            `Tool Name: ${part.functionResponse.name}\n` +
+            `Response: ${JSON.stringify(part.functionResponse.response, null, 2)}`
+          );
+        }
+        logToFile(`const part(userInput)\n` +
+            `Response: ${JSON.stringify(part.functionResponse)}`
+          );
+      }
+    }
+
+    // 2. Log Tool INPUT (`functionCall`)
+    // The model's request to call a tool arrives in the "model output" of the turn.
+    // We check here to log the request that will be executed next.
+    for (const content of modelOutput) {
+      if (content.parts) {
+        for (const part of content.parts) {
+          if ('functionCall' in part && part.functionCall) {
+            logToFile(`====== TOOL CALL INPUT ======\n` +
+              `Tool Name: ${part.functionCall.name}\n` +
+              `Arguments: ${JSON.stringify(part.functionCall.args, null, 2)}`
+            );
+            logToFile(`const part(modelOutput):\n ?${JSON.stringify(part)}`)
+          }
+        }
+      }
+    }
     const nonThoughtModelOutput = modelOutput.filter(
       (content) => !this.isThoughtContent(content),
     );

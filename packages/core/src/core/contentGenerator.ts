@@ -20,6 +20,7 @@ import { Config } from '../config/config.js';
 import { UserTierId } from '../code_assist/types.js';
 import { LoggingContentGenerator } from './loggingContentGenerator.js';
 import { getInstallationId } from '../utils/user_id.js';
+import { logToFile } from '../utils/environmentContext.js';
 
 /**
  * Interface abstracting the core functionalities for generating content and counting tokens.
@@ -57,6 +58,7 @@ export type ContentGeneratorConfig = {
   proxy?: string | undefined;
 };
 
+
 export function createContentGeneratorConfig(
   config: Config,
   authType: AuthType | undefined,
@@ -65,6 +67,10 @@ export function createContentGeneratorConfig(
   const googleApiKey = process.env['GOOGLE_API_KEY'] || undefined;
   const googleCloudProject = process.env['GOOGLE_CLOUD_PROJECT'] || undefined;
   const googleCloudLocation = process.env['GOOGLE_CLOUD_LOCATION'] || undefined;
+  logToFile(geminiApiKey || "no api key")
+  logToFile(googleApiKey || "no google api key")
+  logToFile(googleCloudProject || "no gcp project")
+  logToFile(googleCloudLocation || "no googleCloudLocation")
 
   // Use runtime model from config if available; otherwise, fall back to parameter or default
   const effectiveModel = config.getModel() || DEFAULT_GEMINI_MODEL;
